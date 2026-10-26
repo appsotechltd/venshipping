@@ -37,6 +37,8 @@ const config = {
     supportEmail: env.SUPPORT_EMAIL || 'support@venshipping.com',
     supportPhone: env.SUPPORT_PHONE || '',
   },
+  // Staff key for /api/admin and the /admin page. Leave empty to switch staff access off.
+  adminApiKey: env.ADMIN_API_KEY || '',
   warehousesFile: path.resolve(__dirname, '..', env.WAREHOUSES_FILE || 'config/warehouses.json'),
 };
 

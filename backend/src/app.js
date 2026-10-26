@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -13,6 +14,8 @@ app.use(helmet());
 app.use(cors({ origin: config.corsOrigin === '*' ? true : config.corsOrigin.split(',') }));
 app.use(express.json({ limit: '100kb' }));
 
+// Staff page for receiving goods and updating shipment statuses. It signs in with ADMIN_API_KEY.
+app.use('/admin', express.static(path.join(__dirname, '..', 'public', 'admin')));
 app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/me', meRoutes);

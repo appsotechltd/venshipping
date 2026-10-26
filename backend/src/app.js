@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const config = require('./config');
 const authRoutes = require('./routes/auth');
 const meRoutes = require('./routes/me');
+const adminShipmentRoutes = require('./routes/adminShipments');
 const { shippingInstructions } = require('./services/warehouse');
 
 const app = express();
@@ -15,12 +16,14 @@ app.use(express.json({ limit: '100kb' }));
 app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/me', meRoutes);
+app.use('/api/admin', adminShipmentRoutes);
 app.get('/api/shipping-instructions', (req, res) => res.json(shippingInstructions()));
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
+  if (err.status === 404) return res.status(404).json({ error: err.message });
   if (err.status === 422) return res.status(422).json({ error: err.message, fields: err.fields });
   if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON body' });
   console.error(err);

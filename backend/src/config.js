@@ -36,10 +36,19 @@ const config = {
     adminRecipients: list(env.ADMIN_NOTIFICATION_EMAIL || 'admin@venshipping.com'),
     supportEmail: env.SUPPORT_EMAIL || 'support@venshipping.com',
     supportPhone: env.SUPPORT_PHONE || '',
+    // Optional: where the "Open the app" button in emails points (app store page or web app).
+    appUrl: env.APP_URL || '',
+    // Optional: a hosted logo for emails. By default the logo is embedded in each email.
+    logoUrl: env.EMAIL_LOGO_URL || '',
   },
   // Staff key for /api/admin and the /admin page. Leave empty to switch staff access off.
   adminApiKey: env.ADMIN_API_KEY || '',
   warehousesFile: path.resolve(__dirname, '..', env.WAREHOUSES_FILE || 'config/warehouses.json'),
+  billingFile: path.resolve(__dirname, '..', env.BILLING_FILE || 'config/billing.json'),
+  passwordReset: {
+    codeTtlMinutes: Number(env.PASSWORD_RESET_TTL_MINUTES || 30),
+    maxAttempts: 5,
+  },
 };
 
 if (config.env === 'production' && config.jwt.secret === 'dev-only-secret') {
@@ -48,6 +57,10 @@ if (config.env === 'production' && config.jwt.secret === 'dev-only-secret') {
 
 config.loadWarehouses = function loadWarehouses() {
   return JSON.parse(fs.readFileSync(config.warehousesFile, 'utf8'));
+};
+
+config.loadBilling = function loadBilling() {
+  return JSON.parse(fs.readFileSync(config.billingFile, 'utf8'));
 };
 
 module.exports = config;

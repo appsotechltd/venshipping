@@ -19,6 +19,11 @@ async function requireAuth(req, res, next) {
   try {
     const { rows } = await db.query('SELECT * FROM customers WHERE id = $1', [payload.sub]);
     if (!rows[0]) return res.status(401).json({ error: 'Account not found.' });
+    // Changing the password signs out every device that logged in before the change.
+    const changedAt = rows[0].password_changed_at;
+    if (changedAt && payload.iat < Math.floor(new Date(changedAt).getTime() / 1000)) {
+      return res.status(401).json({ error: 'Your password was changed. Please log in again.' });
+    }
     req.customer = rows[0];
     next();
   } catch (err) {

@@ -75,6 +75,13 @@ class AuthNotifier extends AsyncNotifier<Session?> {
     state = AsyncData(Session(token: result.token, customer: result.customer));
   }
 
+  /// Completes "Forgot password" and signs the customer in with the new password.
+  Future<void> resetPassword({required String email, required String code, required String password}) async {
+    final result = await _api.resetPassword(email: email, code: code, password: password);
+    await _store.saveSession(result.token, result.customer);
+    state = AsyncData(Session(token: result.token, customer: result.customer));
+  }
+
   void dismissWelcome() {
     final current = state.valueOrNull;
     if (current != null && current.justRegistered) state = AsyncData(current.copyWith(justRegistered: false));

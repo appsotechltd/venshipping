@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
+import '../models/billing.dart';
 import '../models/customer.dart';
 import '../models/warehouse_address.dart';
 
@@ -92,6 +93,52 @@ class ApiClient {
   Future<ShippingInstructions> shippingInstructions() async {
     final json = await _send('GET', '/api/shipping-instructions');
     return ShippingInstructions.fromJson(json);
+  }
+
+  /// Emails a 6-digit reset code. Returns the message to show; it is the same whether or not the email has an account.
+  Future<String> forgotPassword(String email) async {
+    final json = await _send('POST', '/api/auth/forgot-password', body: {'email': email});
+    return json['message'] as String? ?? 'Check your email for a 6-digit code.';
+  }
+
+  /// Sets the new password and returns a fresh login.
+  Future<AuthResult> resetPassword({required String email, required String code, required String password}) async {
+    final json = await _send('POST', '/api/auth/reset-password',
+        body: {'email': email, 'code': code, 'password': password});
+    return AuthResult(
+      token: json['token'] as String,
+      customer: Customer.fromJson(json['customer'] as Map<String, dynamic>),
+    );
+  }
+
+  Future<InvoiceList> invoices(String token) async {
+    return InvoiceList.fromJson(await _send('GET', '/api/me/invoices', token: token));
+  }
+
+  Future<Invoice> invoice(String token, String number) async {
+    final json = await _send('GET', '/api/me/invoices/${Uri.encodeComponent(number)}', token: token);
+    return Invoice.fromJson(json['invoice'] as Map<String, dynamic>);
+  }
+
+  Future<List<Receipt>> receipts(String token) async {
+    final json = await _send('GET', '/api/me/receipts', token: token);
+    return (json['receipts'] as List? ?? const []).map((e) => Receipt.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Receipt> receipt(String token, String number) async {
+    final json = await _send('GET', '/api/me/receipts/${Uri.encodeComponent(number)}', token: token);
+    return Receipt.fromJson(json['receipt'] as Map<String, dynamic>);
+  }
+
+  /// "Email me a copy". Returns the confirmation message.
+  Future<String> emailInvoice(String token, String number) async {
+    final json = await _send('POST', '/api/me/invoices/${Uri.encodeComponent(number)}/email', token: token);
+    return json['message'] as String? ?? 'Sent to your email.';
+  }
+
+  Future<String> emailReceipt(String token, String number) async {
+    final json = await _send('POST', '/api/me/receipts/${Uri.encodeComponent(number)}/email', token: token);
+    return json['message'] as String? ?? 'Sent to your email.';
   }
 
   List<WarehouseAddress>? _addresses(Map<String, dynamic> json) {

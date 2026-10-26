@@ -17,6 +17,47 @@ Customers download the app, register, and immediately get their own China wareho
 
    Every email is recorded in the `email_log` table (`sent` / `failed`). An email failure never blocks registration.
 
+## Invoices and receipts
+
+Staff create invoices and record payments through the staff API (send `X-Admin-Key: <ADMIN_API_KEY>`). Customers see them in the app under **Invoices & receipts** and get each one by email automatically.
+
+1. Staff create an invoice for a customer ID with one or more charges (e.g. `12.5 kg × $9.50`). The customer is emailed the invoice straight away. Numbers run `INV-000001`, `INV-000002`, …
+2. When the customer pays, staff record the payment (cash, bank transfer, mobile money, card). Each payment gets a receipt number (`RCT-000001`, …), updates the balance (part paid / paid), and the customer is emailed a receipt.
+3. In the app the customer sees what they owe, every invoice with its charges and how to pay, and every receipt. They can download a branded PDF or email themselves a copy.
+
+Currency, company details and payment instructions (bank / mobile money) live in `backend/config/billing.json`. **The payment details there are placeholders:** replace them before launch.
+
+```bash
+# Create an invoice (emails the customer)
+curl -X POST $API/api/admin/invoices -H "X-Admin-Key: $KEY" -H 'Content-Type: application/json' -d '{
+  "customerId": "FWB2423-0001", "dueDate": "2026-11-30", "notes": "3 cartons, air freight",
+  "items": [{ "description": "Air freight Guangzhou to Accra", "quantity": 12.5, "unit": "kg", "unitPrice": 9.5 },
+            { "description": "Handling fee", "unitPrice": 15 }] }'
+
+# Record a payment (emails the receipt)
+curl -X POST $API/api/admin/invoices/INV-000001/payments -H "X-Admin-Key: $KEY" -H 'Content-Type: application/json' \
+  -d '{ "amount": 133.75, "method": "mobile_money", "reference": "MTN-123" }'
+```
+
+## Emails
+
+Every email uses one branded design (`backend/src/services/emailLayout.js`): navy header with the logo, lime accents, mobile-friendly, with a plain-text version. The logo is embedded in the email, so nothing needs hosting; set `EMAIL_LOGO_URL` to use a hosted copy instead. Set `APP_URL` to add an "Open the VEN Shipping app" button.
+
+| Email | Sent when |
+| --- | --- |
+| Welcome + China warehouse address | customer registers |
+| New customer notification (to staff) | customer registers |
+| Password reset code | customer taps "Forgot password?" |
+| Password changed | password reset completes |
+| Invoice | staff create an invoice (or the customer taps "Email me a copy") |
+| Payment receipt | staff record a payment (or "Email me a copy") |
+
+Every email is recorded in `email_log`.
+
+## Forgot password
+
+The customer taps **Forgot password?** on the login screen and enters their email. If it has an account, we email a 6-digit code (valid 30 minutes, 5 tries, one code at a time). They enter the code and a new password and are signed straight in; every other device is signed out and they get a "password changed" email. The screen answers the same way for unknown emails so nobody can probe which emails are registered.
+
 ## Backend
 
 ```bash
@@ -39,6 +80,18 @@ With `SMTP_HOST` empty, emails are built and logged but not sent, which is handy
 | `GET /api/me` | signed-in customer |
 | `GET /api/me/warehouse-addresses` | personalised addresses, preferred method first |
 | `GET /api/shipping-instructions` | steps and support contact |
+| `POST /api/auth/forgot-password` | `{ email }`: emails a 6-digit code |
+| `POST /api/auth/reset-password` | `{ email, code, password }`: returns token and customer |
+| `GET /api/me/invoices` | invoices, newest first, plus `outstanding` per currency |
+| `GET /api/me/invoices/:number` | invoice with charges, payments and how to pay |
+| `GET /api/me/receipts`, `GET /api/me/receipts/:number` | payment receipts |
+| `POST /api/me/invoices/:number/email`, `POST /api/me/receipts/:number/email` | email the customer a copy |
+| `POST /api/admin/invoices` | staff: create an invoice and email it |
+| `GET /api/admin/invoices/:number` | staff: view an invoice |
+| `POST /api/admin/invoices/:number/payments` | staff: record a payment and email the receipt |
+| `POST /api/admin/invoices/:number/void` | staff: cancel an invoice with no payments |
+
+Amounts in the API are in minor units (`totalCents: 13375` is $133.75). Staff send prices in normal units (`unitPrice: 9.5`).
 
 ## App
 

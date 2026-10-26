@@ -85,6 +85,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onFieldSubmitted: (_) => _submit(),
                         validator: (v) => (v == null || v.isEmpty) ? 'Enter your password.' : null,
                       ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => context.go(Uri(
+                            path: '/forgot-password',
+                            queryParameters: _email.text.trim().isEmpty ? null : {'email': _email.text.trim()},
+                          ).toString()),
+                          child: const Text('Forgot password?'),
+                        ),
+                      ),
                       if (_error != null) ...[
                         Text(_error!, style: text.bodyMedium?.copyWith(color: VenColors.error)),
                         const SizedBox(height: 12),

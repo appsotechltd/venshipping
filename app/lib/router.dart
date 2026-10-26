@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
+import 'screens/billing_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/invoice_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/receipt_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/shipping_instructions_screen.dart';
 import 'screens/splash_screen.dart';
 
-const _signedOutRoutes = {'/register', '/login'};
+const _signedOutRoutes = {'/register', '/login', '/forgot-password'};
 
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
@@ -35,6 +39,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
       GoRoute(path: '/instructions', builder: (_, __) => const ShippingInstructionsScreen()),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, state) => ForgotPasswordScreen(initialEmail: state.uri.queryParameters['email']),
+      ),
+      GoRoute(
+        path: '/billing',
+        builder: (_, __) => const BillingScreen(),
+        routes: [
+          GoRoute(
+            path: 'invoices/:number',
+            builder: (_, state) => InvoiceScreen(invoiceNumber: state.pathParameters['number']!),
+          ),
+          GoRoute(
+            path: 'receipts/:number',
+            builder: (_, state) => ReceiptScreen(receiptNumber: state.pathParameters['number']!),
+          ),
+        ],
+      ),
     ],
   );
 });

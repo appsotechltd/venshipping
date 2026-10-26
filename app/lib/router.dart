@@ -6,6 +6,8 @@ import 'providers/auth_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/shipment_detail_screen.dart';
+import 'screens/shipments_screen.dart';
 import 'screens/shipping_instructions_screen.dart';
 import 'screens/splash_screen.dart';
 
@@ -35,6 +37,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
       GoRoute(path: '/instructions', builder: (_, __) => const ShippingInstructionsScreen()),
+      GoRoute(path: '/shipments', builder: (_, __) => const ShipmentsScreen()),
+      GoRoute(
+        path: '/shipments/:trackingNumber',
+        builder: (_, state) => ShipmentDetailScreen(trackingNumber: state.pathParameters['trackingNumber']!),
+      ),
     ],
   );
 });

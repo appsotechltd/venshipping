@@ -7,11 +7,13 @@ import 'package:share_plus/share_plus.dart';
 import '../models/customer.dart';
 import '../models/warehouse_address.dart';
 import '../providers/auth_provider.dart';
+import '../providers/shipments_provider.dart';
 import '../providers/warehouse_provider.dart';
 import '../services/address_pdf.dart';
 import '../theme.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/method_toggle.dart';
+import '../widgets/shipments_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -46,7 +48,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () => ref.refresh(warehouseAddressesProvider.future),
+        onRefresh: () {
+          ref.invalidate(shipmentsProvider);
+          return ref.refresh(warehouseAddressesProvider.future);
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 24),
@@ -101,6 +106,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
               ),
+              Transform.translate(offset: const Offset(0, -30), child: const Padding(padding: EdgeInsets.only(bottom: 16), child: ShipmentsCard())),
               Transform.translate(offset: const Offset(0, -30), child: const _StepsCard()),
             ],
           ),

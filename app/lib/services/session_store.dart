@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/customer.dart';
+import '../models/shipment.dart';
 import '../models/warehouse_address.dart';
 
 /// Keeps the login token plus a copy of the customer's details and addresses on the device,
-/// so the warehouse address opens instantly and still shows without a connection.
+/// so the warehouse address and shipment list open instantly and still show without a connection.
 class SessionStore {
   SessionStore([FlutterSecureStorage? storage]) : _storage = storage ?? const FlutterSecureStorage();
 
@@ -15,6 +16,7 @@ class SessionStore {
   static const _tokenKey = 'token';
   static const _customerKey = 'customer';
   static const _addressesKey = 'warehouse_addresses';
+  static const _shipmentsKey = 'shipments';
 
   Future<String?> readToken() => _storage.read(key: _tokenKey);
 
@@ -38,6 +40,19 @@ class SessionStore {
     }
   }
 
+  Future<List<Shipment>?> readShipments() async {
+    final raw = await _storage.read(key: _shipmentsKey);
+    if (raw == null) return null;
+    try {
+      return (jsonDecode(raw) as List).map((e) => Shipment.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveShipments(List<Shipment> shipments) =>
+      _storage.write(key: _shipmentsKey, value: jsonEncode(shipments.map((s) => s.toJson()).toList()));
+
   Future<void> saveSession(String token, Customer customer) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _customerKey, value: jsonEncode(customer.toJson()));
@@ -53,5 +68,6 @@ class SessionStore {
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _customerKey);
     await _storage.delete(key: _addressesKey);
+    await _storage.delete(key: _shipmentsKey);
   }
 }

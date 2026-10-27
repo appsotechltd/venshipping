@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import '../models/billing.dart';
 import '../models/customer.dart';
+import '../models/shipment.dart';
 import '../models/warehouse_address.dart';
 
 class ApiException implements Exception {
@@ -88,6 +89,18 @@ class ApiClient {
   Future<List<WarehouseAddress>> warehouseAddresses(String token) async {
     final json = await _send('GET', '/api/me/warehouse-addresses', token: token);
     return _addresses(json)!;
+  }
+
+  /// The customer's shipments, active ones first. No timeline; fetch one shipment for that.
+  Future<List<Shipment>> shipments(String token) async {
+    final json = await _send('GET', '/api/me/shipments', token: token);
+    return (json['shipments'] as List).map((e) => Shipment.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  /// One shipment with its tracking timeline.
+  Future<Shipment> shipment(String token, String trackingNumber) async {
+    final json = await _send('GET', '/api/me/shipments/${Uri.encodeComponent(trackingNumber)}', token: token);
+    return Shipment.fromJson(json['shipment'] as Map<String, dynamic>);
   }
 
   Future<ShippingInstructions> shippingInstructions() async {

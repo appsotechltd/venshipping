@@ -75,6 +75,21 @@ ThemeData buildVenTheme() {
         textStyle: text.labelLarge?.copyWith(fontWeight: FontWeight.w700),
       ),
     ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      shadowColor: const Color(0x2617174A),
+      height: 68,
+      indicatorColor: VenColors.lime,
+      iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(
+            color: states.contains(WidgetState.selected) ? VenColors.navy : VenColors.muted,
+          )),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) => text.labelSmall?.copyWith(
+            color: states.contains(WidgetState.selected) ? VenColors.navy : VenColors.muted,
+            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w600,
+          )),
+    ),
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: VenColors.navy),
   );
 }

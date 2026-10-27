@@ -8,12 +8,14 @@ import '../models/customer.dart';
 import '../models/warehouse_address.dart';
 import '../providers/auth_provider.dart';
 import '../providers/billing_provider.dart';
+import '../providers/shipments_provider.dart';
 import '../providers/warehouse_provider.dart';
 import '../services/address_pdf.dart';
 import '../theme.dart';
 import '../widgets/billing_card.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/method_toggle.dart';
+import '../widgets/shipments_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -50,6 +52,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       body: RefreshIndicator(
         onRefresh: () {
           ref.invalidate(invoicesProvider);
+          ref.invalidate(shipmentsProvider);
           return ref.refresh(warehouseAddressesProvider.future);
         },
         child: SingleChildScrollView(
@@ -106,6 +109,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
               ),
+              Transform.translate(offset: const Offset(0, -30), child: const Padding(padding: EdgeInsets.only(bottom: 16), child: ShipmentsCard())),
               Transform.translate(offset: const Offset(0, -30), child: const BillingCard()),
               Transform.translate(offset: const Offset(0, -30), child: const _StepsCard()),
             ],
@@ -322,26 +326,18 @@ class _AccountButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PopupMenuButton<String>(
-      tooltip: 'Account',
-      onSelected: (value) {
-        if (value == 'billing') context.push('/billing');
-        if (value == 'logout') ref.read(authProvider.notifier).logout();
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          enabled: false,
-          child: Text('${customer.fullName}\n${customer.email}', style: const TextStyle(color: VenColors.navy)),
+    return Semantics(
+      button: true,
+      label: 'Account',
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => context.go('/account'),
+        child: CircleAvatar(
+          radius: 22,
+          backgroundColor: VenColors.navyLight,
+          foregroundColor: Colors.white,
+          child: Text(customer.initials, style: const TextStyle(fontWeight: FontWeight.w700)),
         ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(value: 'billing', child: Text('Invoices & receipts')),
-        const PopupMenuItem(value: 'logout', child: Text('Log out')),
-      ],
-      child: CircleAvatar(
-        radius: 22,
-        backgroundColor: VenColors.navyLight,
-        foregroundColor: Colors.white,
-        child: Text(customer.initials, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
     );
   }

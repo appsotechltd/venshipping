@@ -17,6 +17,10 @@ Customers download the app, register, and immediately get their own China wareho
 
    Every email is recorded in the `email_log` table (`sent` / `failed`). An email failure never blocks registration.
 
+## App navigation
+
+Signed-in customers get a bottom tab bar: **Home** (warehouse address, shipment and billing summaries), **Shipments**, **Billing** (invoices and receipts, with a lime dot while anything is unpaid) and **Account** (details, shipping instructions, support, log out). Each tab keeps its own back stack.
+
 ## Invoices and receipts
 
 Staff create invoices and record payments through the staff API (send `X-Admin-Key: <ADMIN_API_KEY>`). Customers see them in the app under **Invoices & receipts** and get each one by email automatically.
@@ -58,14 +62,31 @@ Every email is recorded in `email_log`.
 
 The customer taps **Forgot password?** on the login screen and enters their email. If it has an account, we email a 6-digit code (valid 30 minutes, 5 tries, one code at a time). They enter the code and a new password and are signed straight in; every other device is signed out and they get a "password changed" email. The screen answers the same way for unknown emails so nobody can probe which emails are registered.
 
+## How shipment tracking works
+
+1. Goods arrive at the China warehouse. Staff open the staff page at `/admin` on the backend (sign in with `ADMIN_API_KEY`), type the customer ID or the shipping mark off the carton, and record the shipment. It gets a tracking number (`VEN-100001`, `VEN-100002`, …) and starts at **Received at China warehouse**.
+2. As the goods move, staff tick the shipments (for example everything in one container) and set the new status in one go, with an optional location, note for the customer and estimated arrival date.
+3. The customer sees each shipment in the app straight away: a **Track my shipments** card on the dashboard, a list of active and delivered shipments, and a timeline for each one.
+
+The stages, in order: Received at China warehouse, Departed China, In transit, Arrived at destination, Ready for pickup, Delivered. **On hold** can be set at any point (customs checks, a missing shipping mark…) and keeps the progress already made.
+
+Every change fires a notification hook (`backend/src/services/notifications.js`) so status emails or push notifications can be added without touching the tracking code:
+
+```js
+const { onShipmentEvent } = require('./services/notifications');
+onShipmentEvent(async ({ type, shipment, customer, event, previousStatus }) => {
+  // type: 'shipment.created' | 'shipment.status_changed'
+});
+```
+
 ## Backend
 
 ```bash
 cd backend
-cp .env.example .env        # set DATABASE_URL, JWT_SECRET, SMTP_*, ADMIN_NOTIFICATION_EMAIL
+cp .env.example .env        # set DATABASE_URL, JWT_SECRET, SMTP_*, ADMIN_NOTIFICATION_EMAIL, ADMIN_API_KEY
 npm install
 npm run migrate
-npm start                   # http://localhost:4000
+npm start                   # http://localhost:4000, staff page at http://localhost:4000/admin
 npm test                    # needs a throwaway Postgres DB (TEST_DATABASE_URL, default venshipping_test)
 ```
 
@@ -92,6 +113,21 @@ With `SMTP_HOST` empty, emails are built and logged but not sent, which is handy
 | `POST /api/admin/invoices/:number/void` | staff: cancel an invoice with no payments |
 
 Amounts in the API are in minor units (`totalCents: 13375` is $133.75). Staff send prices in normal units (`unitPrice: 9.5`).
+| `GET /api/me/shipments` | the customer's shipments, active first |
+| `GET /api/me/shipments/:trackingNumber` | one shipment with its tracking timeline |
+
+Staff endpoints need the header `X-Admin-Key: <ADMIN_API_KEY>`; add `X-Staff-Name` to record who made each change. The `/admin` page uses these.
+
+| Staff endpoint | |
+| --- | --- |
+| `GET /api/admin/customers?q=` | find a customer by ID, name, phone or email |
+| `POST /api/admin/shipments` | record goods received: `customerId` or `shippingMark`, optional `shippingMethod`, `description`, `packages`, `weightKg`, `volumeCbm`, `supplierTracking`, `estimatedArrival`, `location`, `note` |
+| `GET /api/admin/shipments?status=&customerId=&q=` | list and search |
+| `GET /api/admin/shipments/:trackingNumber` | details and full history, including who changed what |
+| `PATCH /api/admin/shipments/:trackingNumber` | correct details (weight, ETA, …) |
+| `POST /api/admin/shipments/:trackingNumber/status` | `{ status, location?, note?, estimatedArrival? }` |
+| `POST /api/admin/shipments/status` | same, for many shipments at once: `{ trackingNumbers: [...], status, … }` (all or nothing) |
+| `GET /api/admin/shipment-statuses` | the list of statuses |
 
 ## App
 

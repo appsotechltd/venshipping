@@ -34,7 +34,7 @@ class BillingCard extends ConsumerWidget {
         padding: EdgeInsets.zero,
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () => context.push('/billing'),
+          onTap: () => context.go('/billing'),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(18, 16, 12, 16),
             child: Row(children: [

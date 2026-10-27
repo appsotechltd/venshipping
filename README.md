@@ -1,4 +1,4 @@
-# VEN Shipping
+﻿# VEN Shipping
 
 Customers download the app, register, and immediately get their own China warehouse address and shipping mark. No staff involvement needed.
 
@@ -138,14 +138,12 @@ The repo holds the Dart code, assets and config; generate the platform folders o
 
 ```bash
 cd app
-flutter create . --org com.venshipping --platforms=android,ios,web
 flutter pub get
-dart run flutter_launcher_icons          # app icon from assets/images/app_icon.png
-dart run flutter_native_splash:create    # launch screen (navy + V mark) shown before the app starts
 flutter run                              # uses the production API, https://api.venshipping.com
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000   # or a backend on your computer (Android emulator)
+flutter build apk --release              # Android release build (production API)
 ```
 
-The app talks to the production API by default. After `flutter create`, add `<uses-permission android:name="android.permission.INTERNET"/>` to `android/app/src/main/AndroidManifest.xml`, otherwise release builds on Android cannot reach the API.
+The Android, iOS and web projects are committed, including the generated launcher icon and launch screen (navy with the V mark) and the Android `INTERNET` permission. If you change `assets/images/app_icon.png` or `splash_mark.png`, regenerate them with `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`.
 
 Brand colours come from the logo: navy `#17174A`, lime `#B5CF30`, white (see `app/lib/theme.dart`).

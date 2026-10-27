@@ -1,0 +1,15 @@
+{
+  "_note": "PLACEHOLDER PAYMENT DETAILS. Replace with VEN Shipping's real bank / mobile money details before launch. Shown on every invoice, in the app and in invoice emails.",
+  "currency": "USD",
+  "company": {
+    "name": "VEN International Logistics Ltd",
+    "addressLines": ["Accra, Ghana"],
+    "taxId": ""
+  },
+  "paymentInstructions": [
+    "Bank transfer: VEN International Logistics Ltd, Bank name, Account 0000000000.",
+    "Mobile money: 000 000 0000 (VEN International Logistics).",
+    "Always use your invoice number as the payment reference."
+  ],
+  "invoiceFooter": "Thank you for shipping with VEN Shipping."
+}

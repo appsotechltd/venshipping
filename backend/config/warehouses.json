@@ -1,0 +1,45 @@
+{
+  "_note": "PLACEHOLDER ADDRESSES. Replace with the real VEN Shipping China warehouses before launch. {mark} is replaced with the customer's shipping mark, e.g. FWB2423-0001 (VEN SHIPPING).",
+  "warehouses": [
+    {
+      "method": "air",
+      "label": "Air Freight Warehouse",
+      "recipient": "{mark}",
+      "phone": "+86 000 0000 0000",
+      "addressLine": "Room 000, Building 0, Example Logistics Park, Baiyun District ({mark})",
+      "city": "Guangzhou",
+      "province": "Guangdong",
+      "postalCode": "510000",
+      "country": "China",
+      "transitTime": "7 to 14 days",
+      "notes": [
+        "Air freight is best for small, light or urgent items.",
+        "Batteries, liquids, powders and branded goods may be restricted. Ask us before sending."
+      ]
+    },
+    {
+      "method": "sea",
+      "label": "Sea Freight Warehouse",
+      "recipient": "{mark}",
+      "phone": "+86 000 0000 0000",
+      "addressLine": "Warehouse 0, Example Road, Huangpu District ({mark})",
+      "city": "Guangzhou",
+      "province": "Guangdong",
+      "postalCode": "510700",
+      "country": "China",
+      "transitTime": "45 to 60 days",
+      "notes": [
+        "Sea freight is best for large, heavy or bulk goods.",
+        "Goods are consolidated and loaded on the next available container."
+      ]
+    }
+  ],
+  "instructions": [
+    "Copy your China warehouse address exactly as shown, including your shipping mark.",
+    "Write your shipping mark on every carton and give it to your supplier.",
+    "Ask your supplier to include the shipping mark in the recipient name and on the waybill.",
+    "Choose the warehouse that matches how you want to ship: air freight or sea freight.",
+    "Send us the supplier's tracking number once the goods are dispatched.",
+    "Goods without a shipping mark can be delayed or lost, so always include it."
+  ]
+}

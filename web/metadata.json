@@ -1,0 +1,7 @@
+{
+  "name": "Ven International Logistics",
+  "description": "A professional, modern website for Ven International Logistics Ltd, a logistics and shipping company. It features a hero slider, dark/light modes, a quote request form, and a complete shipment tracking system.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

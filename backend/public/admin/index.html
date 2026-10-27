@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>VEN Shipping Staff</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="top">
+    <img src="logo_white.png" alt="VEN International Logistics" height="34">
+    <span class="tag">Staff</span>
+    <button id="signOut" class="link hidden" type="button">Sign out</button>
+  </header>
+
+  <main>
+    <section id="signIn" class="card narrow">
+      <h1>Staff sign in</h1>
+      <form id="signInForm">
+        <label>Staff key<input id="key" type="password" autocomplete="current-password" required></label>
+        <label>Your name<input id="staffName" placeholder="Shown in the shipment history" required></label>
+        <button class="primary" type="submit">Continue</button>
+        <p class="error" id="signInError"></p>
+      </form>
+    </section>
+
+    <div id="app" class="hidden">
+      <section class="card">
+        <h2>Receive goods at the China warehouse</h2>
+        <form id="receiveForm" class="grid">
+          <label class="wide">Customer ID or shipping mark
+            <input name="customerId" list="customerOptions" placeholder="FWB2423-0001" required autocomplete="off">
+            <datalist id="customerOptions"></datalist>
+            <small id="customerHint"></small>
+          </label>
+          <label>Method
+            <select name="shippingMethod">
+              <option value="">Customer's preference</option>
+              <option value="air">Air freight</option>
+              <option value="sea">Sea freight</option>
+            </select>
+          </label>
+          <label class="wide">Description<input name="description" placeholder="3 cartons of shoes"></label>
+          <label>Packages<input name="packages" type="number" min="1" step="1"></label>
+          <label>Weight (kg)<input name="weightKg" type="number" min="0" step="0.01"></label>
+          <label>Volume (CBM)<input name="volumeCbm" type="number" min="0" step="0.001"></label>
+          <label>Supplier tracking no.<input name="supplierTracking"></label>
+          <label>Location<input name="location" placeholder="Guangzhou warehouse"></label>
+          <label class="wide">Note for the customer<input name="note"></label>
+          <div class="wide actions"><button class="primary" type="submit">Record shipment</button><span class="msg" id="receiveMsg"></span></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="row between">
+          <h2>Shipments</h2>
+          <div class="row">
+            <input id="search" type="search" placeholder="Search tracking no., customer, description">
+            <select id="statusFilter"><option value="">All statuses</option></select>
+          </div>
+        </div>
+
+        <div id="bulkBar" class="bulk hidden">
+          <strong id="selectedCount"></strong>
+          <select id="bulkStatus"></select>
+          <input id="bulkLocation" placeholder="Location (optional)">
+          <input id="bulkNote" placeholder="Note for the customer (optional)">
+          <label class="inline">ETA <input id="bulkEta" type="date"></label>
+          <button class="primary" id="bulkApply" type="button">Update status</button>
+        </div>
+        <p class="msg" id="listMsg"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th><input type="checkbox" id="selectAll" aria-label="Select all"></th>
+              <th>Tracking no.</th><th>Customer</th><th>Goods</th><th>Method</th><th>Status</th><th>Updated</th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="detail" class="card hidden"></section>
+    </div>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>

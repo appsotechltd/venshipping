@@ -1,0 +1,193 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../config.dart';
+import '../models/billing.dart';
+import '../models/customer.dart';
+import '../models/shipment.dart';
+import '../models/warehouse_address.dart';
+
+class ApiException implements Exception {
+  ApiException(this.message, {this.statusCode, this.fields = const {}});
+
+  final String message;
+  final int? statusCode;
+
+  /// Per-field messages from the server, keyed by request field name (e.g. 'email').
+  final Map<String, String> fields;
+
+  bool get isUnauthorized => statusCode == 401;
+
+  @override
+  String toString() => message;
+}
+
+class AuthResult {
+  const AuthResult({required this.token, required this.customer, this.addresses});
+
+  final String token;
+  final Customer customer;
+  final List<WarehouseAddress>? addresses;
+}
+
+class RegistrationRequest {
+  const RegistrationRequest({
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    required this.password,
+    required this.deliveryDestination,
+    required this.preferredShippingMethod,
+  });
+
+  final String fullName;
+  final String email;
+  final String phone;
+  final String password;
+  final String deliveryDestination;
+  final String preferredShippingMethod;
+
+  Map<String, dynamic> toJson() => {
+        'fullName': fullName,
+        'email': email,
+        'phone': phone,
+        'password': password,
+        'deliveryDestination': deliveryDestination,
+        'preferredShippingMethod': preferredShippingMethod,
+      };
+}
+
+class ApiClient {
+  ApiClient({http.Client? client, this.baseUrl = apiBaseUrl}) : _client = client ?? http.Client();
+
+  final http.Client _client;
+  final String baseUrl;
+
+  Future<AuthResult> register(RegistrationRequest request) async {
+    final json = await _send('POST', '/api/auth/register', body: request.toJson());
+    return AuthResult(
+      token: json['token'] as String,
+      customer: Customer.fromJson(json['customer'] as Map<String, dynamic>),
+      addresses: _addresses(json),
+    );
+  }
+
+  Future<AuthResult> login(String email, String password) async {
+    final json = await _send('POST', '/api/auth/login', body: {'email': email, 'password': password});
+    return AuthResult(
+      token: json['token'] as String,
+      customer: Customer.fromJson(json['customer'] as Map<String, dynamic>),
+    );
+  }
+
+  Future<Customer> me(String token) async {
+    final json = await _send('GET', '/api/me', token: token);
+    return Customer.fromJson(json['customer'] as Map<String, dynamic>);
+  }
+
+  Future<List<WarehouseAddress>> warehouseAddresses(String token) async {
+    final json = await _send('GET', '/api/me/warehouse-addresses', token: token);
+    return _addresses(json)!;
+  }
+
+  /// The customer's shipments, active ones first. No timeline; fetch one shipment for that.
+  Future<List<Shipment>> shipments(String token) async {
+    final json = await _send('GET', '/api/me/shipments', token: token);
+    return (json['shipments'] as List).map((e) => Shipment.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  /// One shipment with its tracking timeline.
+  Future<Shipment> shipment(String token, String trackingNumber) async {
+    final json = await _send('GET', '/api/me/shipments/${Uri.encodeComponent(trackingNumber)}', token: token);
+    return Shipment.fromJson(json['shipment'] as Map<String, dynamic>);
+  }
+
+  Future<ShippingInstructions> shippingInstructions() async {
+    final json = await _send('GET', '/api/shipping-instructions');
+    return ShippingInstructions.fromJson(json);
+  }
+
+  /// Emails a 6-digit reset code. Returns the message to show; it is the same whether or not the email has an account.
+  Future<String> forgotPassword(String email) async {
+    final json = await _send('POST', '/api/auth/forgot-password', body: {'email': email});
+    return json['message'] as String? ?? 'Check your email for a 6-digit code.';
+  }
+
+  /// Sets the new password and returns a fresh login.
+  Future<AuthResult> resetPassword({required String email, required String code, required String password}) async {
+    final json = await _send('POST', '/api/auth/reset-password',
+        body: {'email': email, 'code': code, 'password': password});
+    return AuthResult(
+      token: json['token'] as String,
+      customer: Customer.fromJson(json['customer'] as Map<String, dynamic>),
+    );
+  }
+
+  Future<InvoiceList> invoices(String token) async {
+    return InvoiceList.fromJson(await _send('GET', '/api/me/invoices', token: token));
+  }
+
+  Future<Invoice> invoice(String token, String number) async {
+    final json = await _send('GET', '/api/me/invoices/${Uri.encodeComponent(number)}', token: token);
+    return Invoice.fromJson(json['invoice'] as Map<String, dynamic>);
+  }
+
+  Future<List<Receipt>> receipts(String token) async {
+    final json = await _send('GET', '/api/me/receipts', token: token);
+    return (json['receipts'] as List? ?? const []).map((e) => Receipt.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Receipt> receipt(String token, String number) async {
+    final json = await _send('GET', '/api/me/receipts/${Uri.encodeComponent(number)}', token: token);
+    return Receipt.fromJson(json['receipt'] as Map<String, dynamic>);
+  }
+
+  /// "Email me a copy". Returns the confirmation message.
+  Future<String> emailInvoice(String token, String number) async {
+    final json = await _send('POST', '/api/me/invoices/${Uri.encodeComponent(number)}/email', token: token);
+    return json['message'] as String? ?? 'Sent to your email.';
+  }
+
+  Future<String> emailReceipt(String token, String number) async {
+    final json = await _send('POST', '/api/me/receipts/${Uri.encodeComponent(number)}/email', token: token);
+    return json['message'] as String? ?? 'Sent to your email.';
+  }
+
+  List<WarehouseAddress>? _addresses(Map<String, dynamic> json) {
+    final list = json['warehouseAddresses'] as List?;
+    return list?.map((e) => WarehouseAddress.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Map<String, dynamic>> _send(String method, String path, {Map<String, dynamic>? body, String? token}) async {
+    final request = http.Request(method, Uri.parse('$baseUrl$path'));
+    request.headers['Accept'] = 'application/json';
+    if (body != null) {
+      request.headers['Content-Type'] = 'application/json';
+      request.body = jsonEncode(body);
+    }
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+    http.Response response;
+    try {
+      response = await http.Response.fromStream(await _client.send(request).timeout(const Duration(seconds: 20)));
+    } catch (_) {
+      throw ApiException('Could not reach VEN Shipping. Check your internet connection and try again.');
+    }
+
+    Map<String, dynamic> json = const {};
+    if (response.body.isNotEmpty) {
+      try {
+        json = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    if (response.statusCode >= 200 && response.statusCode < 300) return json;
+
+    final fields = (json['fields'] as Map<String, dynamic>? ?? const {}).map((k, v) => MapEntry(k, v.toString()));
+    throw ApiException(
+      json['error'] as String? ?? 'Something went wrong. Please try again.',
+      statusCode: response.statusCode,
+      fields: fields,
+    );
+  }
+}

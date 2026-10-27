@@ -26,7 +26,8 @@ class ShipmentDetailScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(shipmentsProvider);
-          await ref.refresh(shipmentDetailProvider(trackingNumber).future);
+          ref.invalidate(shipmentDetailProvider(trackingNumber));
+          await ref.read(shipmentDetailProvider(trackingNumber).future);
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),

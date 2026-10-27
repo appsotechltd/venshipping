@@ -24,6 +24,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
 
 flutter:
   uses-material-design: true
@@ -40,3 +41,12 @@ flutter_launcher_icons:
     image_path: assets/images/app_icon.png
     background_color: "#17174A"
     theme_color: "#17174A"
+
+# The screen the phone shows before Flutter starts: navy with the V mark, matching the in-app splash.
+flutter_native_splash:
+  color: "#17174A"
+  image: assets/images/splash_mark.png
+  android_12:
+    color: "#17174A"
+    image: assets/images/splash_mark.png
+  web: false

@@ -141,6 +141,7 @@ cd app
 flutter create . --org com.venshipping --platforms=android,ios,web
 flutter pub get
 dart run flutter_launcher_icons          # app icon from assets/images/app_icon.png
+dart run flutter_native_splash:create    # launch screen (navy + V mark) shown before the app starts
 flutter run                              # uses the production API, https://api.venshipping.com
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000   # or a backend on your computer (Android emulator)
 ```

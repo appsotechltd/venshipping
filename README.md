@@ -2,8 +2,11 @@
 
 Customers download the app, register, and immediately get their own China warehouse address and shipping mark. No staff involvement needed.
 
-- `backend/`: Express + Postgres API
+- `backend/`: Express + Postgres API. One backend for the app and the website
 - `app/`: Flutter + Riverpod mobile app
+- `web/`: React + Vite website (public pages, customer and admin dashboards). Talks to the backend at `/api/web`
+
+The website API lives in `backend/src/web/` and uses the same customers, shipments and invoices tables as the app. See [docs/MIGRATION.md](docs/MIGRATION.md) for moving the old MySQL website data over.
 
 ## How registration works
 

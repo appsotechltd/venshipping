@@ -9,6 +9,7 @@ const adminShipmentRoutes = require('./routes/adminShipments');
 const billingRoutes = require('./routes/billing');
 const adminBillingRoutes = require('./routes/adminBilling');
 const { shippingInstructions } = require('./services/warehouse');
+const web = require('./web');
 
 const app = express();
 
@@ -18,7 +19,10 @@ app.use(express.json({ limit: '100kb' }));
 
 // Staff page for receiving goods and updating shipment statuses. It signs in with ADMIN_API_KEY.
 app.use('/admin', express.static(path.join(__dirname, '..', 'public', 'admin')));
+// Uploaded images and videos for the website.
+app.use('/uploads', express.static(web.uploadDir));
 app.get('/health', (req, res) => res.json({ ok: true }));
+app.use('/api/web', web.router);
 app.use('/api/auth', authRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/admin', adminShipmentRoutes);

@@ -141,7 +141,10 @@ cd app
 flutter create . --org com.venshipping --platforms=android,ios,web
 flutter pub get
 dart run flutter_launcher_icons          # app icon from assets/images/app_icon.png
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000
+flutter run                              # uses the production API, https://api.venshipping.com
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000   # or a backend on your computer (Android emulator)
 ```
+
+The app talks to the production API by default. After `flutter create`, add `<uses-permission android:name="android.permission.INTERNET"/>` to `android/app/src/main/AndroidManifest.xml`, otherwise release builds on Android cannot reach the API.
 
 Brand colours come from the logo: navy `#17174A`, lime `#B5CF30`, white (see `app/lib/theme.dart`).

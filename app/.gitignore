@@ -6,3 +6,4 @@ build/
 pubspec.lock
 *.iml
 .idea/
+.flutter_tool_state
